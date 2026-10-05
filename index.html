@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MuskanDangerBotPro - Trading Platform</title>
+  <link rel="manifest" id="dynamic-manifest">
+  <style>
+    :root {
+      --bg-color: #0b132b;
+      --panel-bg: #1c2541;
+      --border-color: #3a506b;
+      --accent-color: #ff7700;
+      --text-main: #ffffff;
+      --text-muted: #8d99ae;
+      --success: #2ec4b6;
+      --danger: #e63946;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+    body { background-color: var(--bg-color); color: var(--text-main); min-height: 100vh; display: flex; flex-direction: column; }
+    
+    header { background: #080c1f; border-bottom: 1px solid var(--border-color); display: flex; align-items: center; justify-content: space-between; padding: 10px 15px; flex-wrap: wrap; gap: 10px; }
+    .top-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+    .header-btn { background: linear-gradient(135deg, #ff7700, #ff9933); border: none; color: #fff; padding: 6px 12px; font-size: 12px; font-weight: 600; border-radius: 6px; cursor: pointer; }
+    #install-btn { background: linear-gradient(135deg, #059669, #10b981); display: none; }
+
+    .nav-bar { background: #080c1f; border-bottom: 1px solid var(--border-color); display: flex; overflow-x: auto; padding: 5px 10px; gap: 5px; }
+    .nav-btn { background: transparent; border: none; color: var(--text-muted); padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; border-radius: 6px; white-space: nowrap; }
+    .nav-btn.active, .nav-btn:hover { background: var(--accent-color); color: #fff; }
+
+    .main-content { flex: 1; padding: 15px; overflow-y: auto; max-width: 1200px; margin: 0 auto; width: 100%; }
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* Account Switcher Banner */
+    .account-banner { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 10px; padding: 15px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    .mode-switch { display: flex; background: var(--bg-color); border-radius: 6px; padding: 3px; border: 1px solid var(--border-color); }
+    .mode-btn { background: transparent; border: none; color: var(--text-muted); padding: 6px 12px; font-size: 12px; font-weight: bold; cursor: pointer; border-radius: 4px; }
+    .mode-btn.active { background: var(--accent-color); color: #fff; }
+
+    /* Buttons */
+    .btn-action { background: var(--accent-color); color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+    .btn-secondary { background: #3a506b; color: #fff; border: none; padding: 8px 15px; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 13px; }
+
+    /* Modals */
+    .modal-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); justify-content: center; align-items: center; z-index: 1000; padding: 15px; }
+    .modal-box { width: 100%; max-width: 450px; background: var(--panel-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); position: relative; max-height: 90vh; overflow-y: auto; }
+    .close-modal { position: absolute; top: 15px; right: 15px; background: none; border: none; color: var(--text-muted); font-size: 20px; cursor: pointer; }
+
+    /* Deposit Options Grid */
+    .deposit-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+    .deposit-card { background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; text-align: center; cursor: pointer; transition: 0.2s; }
+    .deposit-card:hover, .deposit-card.selected { border-color: var(--accent-color); background: rgba(255,119,0,0.1); }
+    .deposit-card h5 { font-size: 13px; margin-top: 5px; }
+
+    .method-list { display: flex; flex-direction: column; gap: 8px; margin-top: 15px; }
+    .method-item { background: var(--bg-color); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+    .method-item:hover { border-color: var(--accent-color); }
+
+    /* KYC & Support Form styling */
+    .form-group { margin-bottom: 12px; }
+    .form-group label { display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 5px; }
+    .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; outline: none; }
+
+    /* Chat window style */
+    .chat-container { display: flex; flex-direction: column; height: 320px; background: var(--bg-color); border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; overflow-y: auto; margin-bottom: 10px; gap: 8px; }
+    .chat-msg { padding: 8px 12px; border-radius: 8px; font-size: 13px; max-width: 80%; line-height: 1.4; }
+    .chat-msg.bot { background: var(--panel-bg); color: #fff; align-self: flex-start; border: 1px solid var(--border-color); }
+    .chat-msg.user { background: var(--accent-color); color: #fff; align-self: flex-end; }
+
+    /* Market List */
+    .market-list { display: flex; flex-direction: column; gap: 8px; }
+    .market-card { background: var(--panel-bg); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px 15px; display: flex; justify-content: space-between; align-items: center; }
+    .market-info h4 { font-size: 14px; color: var(--text-main); margin-bottom: 3px; }
+    .market-info p { font-size: 11px; color: var(--text-muted); }
+    .market-price { text-align: right; }
+    .market-price .price { font-size: 14px; font-weight: bold; color: var(--success); }
+
+    /* Bottom Nav Bar */
+    .bottom-nav { background: #080c1f; border-top: 1px solid var(--border-color); display: flex; justify-content: space-around; padding: 8px 0; position: sticky; bottom: 0; }
+    .b-nav-item { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; gap: 3px; cursor: pointer; }
+    .b-nav-item.active { color: var(--accent-color); }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div style="font-weight: bold; font-size: 15px; color: var(--accent-color);">MuskanDangerBotPro</div>
+    <div class="top-actions">
+      <button class="header-btn" id="install-btn" onclick="installApp()">📲 Install App</button>
+      <button class="header-btn" onclick="openSupportModal()">💬 Ask Amy (Support)</button>
+      <button class="header-btn" onclick="openKycModal()" style="background: linear-gradient(135deg, #059669, #10b981);">🛡️ KYC Verify</button>
+    </div>
+  </header>
+
+  <div class="nav-bar">
+    <button class="nav-btn active" onclick="switchTab('home', this)">Home</button>
+    <button class="nav-btn" onclick="switchTab('markets', this)">Markets</button>
+    <button class="nav-btn" onclick="switchTab('trade', this)">Trade Bot</button>
+    <button class="nav-btn" onclick="switchTab('funds', this)">Funds</button>
+    <button class="nav-btn" onclick="switchTab('affiliate', this)" style="color: var(--accent-color);">🏆 Commission / PlayStore</button>
+  </div>
+
+  <div class="main-content">
+    
+    <!-- HOME SECTION -->
+    <div id="home" class="section active">
+      <div class="account-banner">
+        <div>
+          <p style="font-size: 12px; color: var(--text-muted);" id="acc-type-label">Demo Trading Account</p>
+          <h2 style="font-size: 22px; color: var(--success); margin-top: 3px;" id="main-balance">USD 10,000.00</h2>
+        </div>
+        <div class="mode-switch">
+          <button class="mode-btn active" id="demo-mode-btn" onclick="setAccountMode('demo')">Demo</button>
+          <button class="mode-btn" id="real-mode-btn" onclick="setAccountMode('real')">Real</button>
+        </div>
+      </div>
+
+      <div style="display: flex; gap: 10px; margin-bottom: 20px;">
+        <button class="btn-action" style="flex:1;" onclick="openDepositModal()">Deposit Funds</button>
+        <button class="btn-secondary" style="flex:1;" onclick="switchTab('funds', null)">Withdraw / History</button>
+      </div>
+
+      <h3 style="font-size: 15px; margin-bottom: 10px;">Quick Strategies</h3>
+      <div style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h4 style="color: var(--accent-color); font-size: 14px;">RICK REWARD (Metals & Indices)</h4>
+        <p style="font-size: 12px; color: var(--text-muted); margin: 5px 0;">30D Return: <span style="color:var(--success);">+125.34%</span></p>
+        <button class="btn-action" style="padding: 5px 10px; font-size: 11px; margin-top: 5px;" onclick="alert('Bot strategy applied successfully!')">Copy Strategy</button>
+      </div>
+    </div>
+
+    <!-- MARKETS SECTION -->
+    <div id="markets" class="section">
+      <h3 style="margin-bottom: 12px; font-size: 16px;">Live Synthetic & Forex Markets</h3>
+      <div class="market-list" id="market-list-container"></div>
+    </div>
+
+    <!-- TRADE BOT SECTION -->
+    <div id="trade" class="section">
+      <h3 style="margin-bottom: 12px; font-size: 16px;">Automated Trading Execution</h3>
+      <div style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 10px;">Select symbol and run automated digit/spike logic.</p>
+        <button class="btn-action" onclick="alert('Bot started running on live ticks!')">Start Trading Bot</button>
+      </div>
+    </div>
+
+    <!-- FUNDS / DEPOSIT SECTION -->
+    <div id="funds" class="section">
+      <h3 style="margin-bottom: 12px; font-size: 16px;">Wallet & Transactions</h3>
+      <div style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+        <p style="font-size: 12px; color: var(--text-muted);">Est. Total Value</p>
+        <h2 style="font-size: 20px; color: var(--success);" id="wallet-total-val">USD 0.04</h2>
+        <button class="btn-action" style="margin-top: 10px;" onclick="openDepositModal()">+ Add Funds (Deposit)</button>
+      </div>
+      <p style="font-size: 13px; color: var(--text-muted);">Recent transactions will appear here after deposit confirmation.</p>
+    </div>
+
+    <!-- AFFILIATE & COMMISSION SECTION (PLAY STORE READY) -->
+    <div id="affiliate" class="section">
+      <h3 style="margin-bottom: 12px; font-size: 16px;">🏆 Play Store & Commission Dashboard</h3>
+      <div style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 15px;">
+        <p style="font-size: 12px; color: var(--text-muted);">Total Referral / Play Store Earnings (Commission)</p>
+        <h2 style="font-size: 24px; color: var(--success); margin: 5px 0;" id="commission-balance">USD 145.50</h2>
+        <p style="font-size: 11px; color: var(--text-muted);">Ye commission aapke Play Store downloads aur broker affiliate link (`?ref=muskan_danger`) ke through join hone wale users par milta hai.</p>
+      </div>
+
+      <div style="background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid var(--border-color);">
+        <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--accent-color);">Aapka Affiliate / PlayStore Share Link</h4>
+        <input type="text" id="ref-link" value="https://play.google.com/store/apps/details?id=com.muskandangerbot.pro&referrer=ref_muskan" readonly style="width:100%; padding: 8px; background: var(--bg-color); border: 1px solid var(--border-color); color:#fff; border-radius: 6px; font-size: 12px; margin-bottom: 10px;">
+        <button class="btn-action" style="width:100%;" onclick="copyRefLink()">📋 Copy Link & Share</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- CUSTOMER SUPPORT MODAL (ASK AMY / LIVE CHAT) -->
+  <div class="modal-overlay" id="supportModal">
+    <div class="modal-box">
+      <button class="close-modal" onclick="closeSupportModal()">×</button>
+      <h3 style="margin-bottom: 5px; display: flex; align-items: center; gap: 5px;">✨ Ask Amy (Customer Support)</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">24/7 Live Assistance for Deposit, KYC & Trading.</p>
+      
+      <div class="chat-container" id="chat-messages">
+        <div class="chat-msg bot">Hello! Main Amy hoon. Aapki kya madad kar sakti hoon? Deposit, KYC ya Trading ke baare mein poochhein.</div>
+      </div>
+      
+      <div style="display: flex; gap: 8px;">
+        <input type="text" id="chat-input" placeholder="Yahan apna sawal likhein..." style="flex:1; padding: 10px; background: var(--bg-color); border: 1px solid var(--border-color); color: #fff; border-radius: 6px; outline: none;" onkeypress="if(event.key === 'Enter') sendChatMessage()">
+        <button class="btn-action" onclick="sendChatMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEPOSIT MODAL -->
+  <div class="modal-overlay" id="depositModal">
+    <div class="modal-box">
+      <button class="close-modal" onclick="closeDepositModal()">×</button>
+      <h3 style="margin-bottom: 5px;">Deposit USD</h3>
+      <p style="font-size: 12px; color: var(--text-muted);">Select your preferred payment method</p>
+      
+      <div class="deposit-grid">
+        <div class="deposit-card selected" onclick="selectDepositTab('USD', this)">
+          <span style="font-size: 20px;">💵</span>
+          <h5>USD Fiat</h5>
+        </div>
+        <div class="deposit-card" onclick="selectDepositTab('Crypto', this)">
+          <span style="font-size: 20px;">🪙</span>
+          <h5>Crypto</h5>
+        </div>
+        <div class="deposit-card" onclick="selectDepositTab('Wallet', this)">
+          <span style="font-size: 20px;">📱</span>
+          <h5>E-Wallet</h5>
+        </div>
+      </div>
+
+      <div class="method-list" id="payment-methods-list"></div>
+    </div>
+  </div>
+
+  <!-- KYC MODAL -->
+  <div class="modal-overlay" id="kycModal">
+    <div class="modal-box">
+      <button class="close-modal" onclick="closeKycModal()">×</button>
+      <h3 style="margin-bottom: 5px;">KYC Verification</h3>
+      <p style="font-size: 12px; color: var(--text-muted); margin-bottom: 15px;">Submit your details for real money trading approval.</p>
+      
+      <div class="form-group">
+        <label>Full Name (as per ID)</label>
+        <input type="text" id="kyc-name" placeholder="Enter full name">
+      </div>
+      <div class="form-group">
+        <label>Document Type</label>
+        <select id="kyc-doc-type">
+          <option>National Identity Card (CNIC)</option>
+          <option>Passport</option>
+          <option>Driving License</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>ID Document Number</label>
+        <input type="text" id="kyc-doc-num" placeholder="Enter ID number">
+      </div>
+      <button class="btn-action" style="width:100%; margin-top: 10px;" onclick="submitKyc()">Submit for Verification</button>
+    </div>
+  </div>
+
+  <div class="bottom-nav">
+    <button class="b-nav-item active" onclick="switchTab('home', this)">🏠 Home</button>
+    <button class="b-nav-item" onclick="switchTab('markets', this)">📊 Markets</button>
+    <button class="b-nav-item" onclick="switchTab('trade', this)">⚡ Trade</button>
+    <button class="b-nav-item" onclick="switchTab('funds', this)">💳 Funds</button>
+    <button class="b-nav-item" onclick="switchTab('affiliate', this)">🏆 Rewards</button>
+  </div>
+
+  <script>
+    // PWA Manifest setup
+    const manifestData = {
+      "name": "MuskanDangerBotPro",
+      "short_name": "DangerBot",
+      "start_url": window.location.href.split('?')[0],
+      "display": "standalone",
+      "background_color": "#0b132b",
+      "theme_color": "#0b132b"
+    };
+    const blob = new Blob([JSON.stringify(manifestData)], {type: 'application/json'});
+    document.getElementById('dynamic-manifest').href = URL.createObjectURL(blob);
+
+    let deferredPrompt;
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      document.getElementById('install-btn').style.display = 'inline-block';
+    });
+
+    function installApp() {
+      if (deferredPrompt) {
+        deferredPrompt.prompt();
+        deferredPrompt.userChoice.then((choice) => {
+          if (choice.outcome === 'accepted') document.getElementById('install-btn').style.display = 'none';
+          deferredPrompt = null;
+        });
+      }
+    }
+
+    function switchTab(tabId, btn) {
+      document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+      document.querySelectorAll('.nav-btn, .b-nav-item').forEach(b => b.classList.remove('active'));
+      document.getElementById(tabId).classList.add('active');
+      if(btn) btn.classList.add('active');
+    }
+
+    // Account Mode Switcher (Demo vs Real)
+    function setAccountMode(mode) {
+      const demoBtn = document.getElementById('demo-mode-btn');
+      const realBtn = document.getElementById('real-mode-btn');
+      const balanceEl = document.getElementById('main-balance');
+      const labelEl = document.getElementById('acc-type-label');
+
+      if (mode === 'demo') {
+        demoBtn.classList.add('active');
+        realBtn.classList.remove('active');
+        balanceEl.textContent = "USD 10,000.00";
+        labelEl.textContent = "Demo Trading Account";
+      } else {
+        realBtn.classList.add('active');
+        demoBtn.classList.remove('active');
+        balanceEl.textContent = "USD 0.04";
+        labelEl.textContent = "Real Trading Account";
+      }
+    }
+
+    // Customer Support Chatbot (Ask Amy)
+    function openSupportModal() { document.getElementById('supportModal').style.display = 'flex'; }
+    function closeSupportModal() { document.getElementById('supportModal').style.display = 'none'; }
+    
+    function sendChatMessage() {
+      const input = document.getElementById('chat-input');
+      const container = document.getElementById('chat-messages');
+      const text = input.value.trim();
+      if (!text) return;
+
+      container.innerHTML += `<div class="chat-msg user">${text}</div>`;
+      input.value = '';
+      container.scrollTop = container.scrollHeight;
+
+      setTimeout(() => {
+        let reply = "Aapke is sawal ke liye shukriya! Humari support team aapko jald hi real-time update degi. Aap KYC ya Deposit section check kar sakte hain.";
+        const low = text.toLowerCase();
+        if(low.includes('deposit') || low.includes('jazzcash')) {
+          reply = "Deposit ke liye aap Funds tab ya Deposit button par click karke JazzCash, Crypto ya Cards use kar sakte hain.";
+        } else if(low.includes('kyc') || low.includes('verify')) {
+          reply = "KYC ke liye header mein diye gaye 'KYC Verify' button par click karke apna ID document submit karein.";
+        } else if(low.includes('commission') || low.includes('play store') || low.includes('earning')) {
+          reply = "Aapka Play Store aur Affiliate commission 'Commission / PlayStore' tab mein track hota hai jahan aap apna referral link copy kar sakte hain.";
+        }
+        container.innerHTML += `<div class="chat-msg bot">${reply}</div>`;
+        container.scrollTop = container.scrollHeight;
+      }, 700);
+    }
+
+    // Affiliate Link Copy
+    function copyRefLink() {
+      const linkInput = document.getElementById('ref-link');
+      linkInput.select();
+      navigator.clipboard.writeText(linkInput.value);
+      alert('Play Store Affiliate Link copied successfully! Share karein aur apna commission earn karein.');
+    }
+
+    // Deposit Modal controls
+    function openDepositModal() { document.getElementById('depositModal').style.display = 'flex'; selectDepositTab('USD'); }
+    function close
